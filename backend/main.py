@@ -1,5 +1,6 @@
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import resume
 from app.db.session import engine
 from app.db.models import Base
@@ -8,6 +9,15 @@ from app.db.models import Base
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="AI Resume Analyzer")
+
+# CORS (Critical for Frontend Integration)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"], # Vite default
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(resume.router, prefix="/api/v1/resume", tags=["resume"])
 
