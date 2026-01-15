@@ -5,6 +5,10 @@ An engineering-first approach to Resume Analysis that prioritizes determinism, t
 
 Built with FastAPI, PostgreSQL, and strict logical guardrails.
 
+## 📂 Project Structure
+- **[Backend](./backend/README.md)**: Logic Engine, API, and Database.
+- **[Frontend](./frontend/README.md)**: React Demo UI for visual verification.
+
 ## 🏗 Architecture
 
 ```mermaid
