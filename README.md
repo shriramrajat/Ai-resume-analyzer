@@ -33,7 +33,7 @@ graph TD
     end
     
     subgraph Explanation Layer
-    Results -->|JSON Facts| AI[LLM (OpenAI)]
+    Results -->|JSON Facts| AI["LLM (OpenAI)"]
     AI -->|Human Text| Explanation[Analysis Explanation]
     end
     
