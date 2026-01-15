@@ -1,0 +1,43 @@
+
+[
+  {"name": "Python", "category": "language"},
+  {"name": "Java", "category": "language"},
+  {"name": "JavaScript", "category": "language"},
+  {"name": "TypeScript", "category": "language"},
+  {"name": "Go", "category": "language"},
+  {"name": "Rust", "category": "language"},
+  {"name": "C++", "category": "language"},
+  {"name": "SQL", "category": "language"},
+  
+  {"name": "FastAPI", "category": "framework"},
+  {"name": "Django", "category": "framework"},
+  {"name": "Flask", "category": "framework"},
+  {"name": "React", "category": "framework"},
+  {"name": "Next.js", "category": "framework"},
+  {"name": "Vue.js", "category": "framework"},
+  {"name": "Spring Boot", "category": "framework"},
+  {"name": "Express.js", "category": "framework"},
+  
+  {"name": "PostgreSQL", "category": "tool"}, 
+  {"name": "MySQL", "category": "tool"},
+  {"name": "MongoDB", "category": "tool"},
+  {"name": "Redis", "category": "tool"},
+  {"name": "Docker", "category": "tool"},
+  {"name": "Kubernetes", "category": "tool"},
+  {"name": "Terraform", "category": "tool"},
+  {"name": "Jenkins", "category": "tool"},
+  {"name": "Git", "category": "tool"},
+  {"name": "Linux", "category": "tool"},
+  
+  {"name": "AWS", "category": "tool"},
+  {"name": "Azure", "category": "tool"},
+  {"name": "Google Cloud", "category": "tool"},
+  
+  {"name": "System Design", "category": "concept"},
+  {"name": "Microservices", "category": "concept"},
+  {"name": "REST API", "category": "concept"},
+  {"name": "CI/CD", "category": "concept"},
+  {"name": "Agile", "category": "concept"},
+  {"name": "Machine Learning", "category": "concept"},
+  {"name": "Distributed Systems", "category": "concept"}
+]
