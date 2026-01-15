@@ -106,6 +106,32 @@ class AnalysisResult(Base):
     
     # Stores the full detailed breakdown (missing skills, gap analysis) 
     # to avoid complex joins when just displaying the report card.
-    result_json = Column(JSONB, nullable=False) 
+    result_json = Column(JSONB, nullable=True) # Nullable because created before processing
+    
+    # Track Async State (Step 7.2)
+    status = Column(String, default="processing") # processing, completed, failed
+    
+    # Versioning (Step 7.4)
+    engine_version = Column(String, nullable=False, default="1.0.0")
+    
+    # Transparency Metadata (Step 7.5)
+    # Stores { "confidence_level": "...", "limitations": [...] }
+    analysis_metadata = Column(JSONB, nullable=True) 
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class AnalysisExplanation(Base):
+    """
+    Step 6.6: Separation of Concerns.
+    Storage for the AI-generated human-readable text.
+    Linked to the AnalysisResult (the facts).
+    """
+    __tablename__ = "analysis_explanations"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    analysis_id = Column(Integer, ForeignKey("analysis_results.id"))
+    
+    # Store the strict JSON structure from 6.2
+    explanation_json = Column(JSONB, nullable=False)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
