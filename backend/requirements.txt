@@ -1,0 +1,8 @@
+
+fastapi
+uvicorn
+sqlalchemy
+python-multipart
+pdfplumber
+# Database driver
+psycopg2-binary
