@@ -7,6 +7,35 @@ Built with FastAPI, PostgreSQL, and strict logical guardrails.
 
 ## 🏗 Architecture
 
+```mermaid
+graph TD
+    User[Candidate/Recruiter] -->|Upload PDF| API[FastAPI Backend]
+    User -->|Paste JD| API
+    
+    subgraph Ingestion Layer
+    API -->|Raw Text| Parser[Heuristic Parser]
+    Parser -->|Structured Sections| DB[(PostgreSQL)]
+    end
+    
+    subgraph Async Processing
+    API -->|Trigger Analysis| Queue[Background Tasks]
+    Queue -->|Fetch Data| Engine[Matching Engine]
+    end
+    
+    subgraph Core Logic
+    Engine -->|Extracted Skills| Ontology[Skills Master]
+    Engine -->|Compare| Scorer[Weighted Scoring Formula]
+    Scorer -->|Facts| Results[Analysis Results]
+    end
+    
+    subgraph Explanation Layer
+    Results -->|JSON Facts| AI[LLM (OpenAI)]
+    AI -->|Human Text| Explanation[Analysis Explanation]
+    end
+    
+    Explanation -->|Final Report| User
+```
+
 The system is designed as a pipeline with strict separation of concerns:
 
 1.  **Ingestion Layer**: 

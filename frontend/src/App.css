@@ -1,0 +1,154 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #1a1a1a;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #1a1a1a;
+  display: flex;
+  justify-content: center;
+  /* Horizontally center the container */
+  align-items: flex-start;
+  /* Start from top, don't vertically center everything */
+  padding-top: 2rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  width: 100%;
+}
+
+header h1 {
+  font-size: 2em;
+  line-height: 1.1;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.tag {
+  font-size: 0.5em;
+  background: #646cff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+  justify-content: center;
+  /* Center horizontally */
+  max-width: 1000px;
+  margin: 0 auto;
+  /* Center the grid container itself */
+}
+
+.card {
+  padding: 2em;
+  background: #242424;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+textarea {
+  background: #1a1a1a;
+  color: white;
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: #646cff;
+}
+
+.analyze-btn {
+  width: 100%;
+  background-color: #646cff;
+  color: white;
+  font-weight: bold;
+}
+
+.analyze-btn:disabled {
+  background-color: #555;
+}
+
+.success {
+  color: #4caf50;
+  font-size: 0.9em;
+}
+
+.error {
+  color: #ff4d4d;
+}
+
+.score-box {
+  text-align: center;
+  background: #1a1a1a;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.score {
+  display: block;
+  font-size: 3em;
+  font-weight: bold;
+  color: #646cff;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+}
+
+.match {
+  background: #1b5e20;
+  color: #e8f5e9;
+}
+
+.miss {
+  background: #b71c1c;
+  color: #ffebee;
+}
+
+.ai-box {
+  background: #2a2a2a;
+  padding: 1rem;
+  border-left: 4px solid #646cff;
+  margin-bottom: 1rem;
+}
