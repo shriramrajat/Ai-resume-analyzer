@@ -35,7 +35,10 @@ async function startAnalysis(resumeId: number, jdId: number) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ resume_id: resumeId, jd_id: jdId }),
   });
-  if (!res.ok) throw new Error('Analysis start failed');
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.detail || 'Analysis start failed');
+  }
   return res.json();
 }
 
@@ -92,7 +95,8 @@ function App() {
       setAnalysisId(data.analysis_id);
       pollResult(data.analysis_id);
     } catch (err) {
-      alert('Analysis failed to start');
+      console.error(err);
+      alert(`Analysis failed to start: ${err instanceof Error ? err.message : 'Unknown error'}`);
     }
   };
 

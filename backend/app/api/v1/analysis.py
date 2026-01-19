@@ -140,26 +140,33 @@ async def start_analysis(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    # Create the record immediately (Pending State)
-    new_analysis = AnalysisResult(
-        resume_id=request.resume_id,
-        jd_id=request.jd_id,
-        status="processing",
-        overall_match_score=0.0,
-        result_json={},
-        engine_version="1.0.0" # Versioning Step 7.4
-    )
-    db.add(new_analysis)
-    db.commit()
-    db.refresh(new_analysis)
-    
-    # Hand off to background task
-    background_tasks.add_task(process_analysis_task, new_analysis.id, request.resume_id, request.jd_id, db)
-    
-    return {
-        "analysis_id": new_analysis.id,
-        "status": "processing"
-    }
+    print(f"Received analysis request: resume_id={request.resume_id}, jd_id={request.jd_id}")
+    try:
+        # Create the record immediately (Pending State)
+        new_analysis = AnalysisResult(
+            resume_id=request.resume_id,
+            jd_id=request.jd_id,
+            status="processing",
+            overall_match_score=0.0,
+            result_json={},
+            engine_version="1.0.0" # Versioning Step 7.4
+        )
+        db.add(new_analysis)
+        db.commit()
+        db.refresh(new_analysis)
+        
+        # Hand off to background task
+        background_tasks.add_task(process_analysis_task, new_analysis.id, request.resume_id, request.jd_id, db)
+        
+        return {
+            "analysis_id": new_analysis.id,
+            "status": "processing"
+        }
+    except Exception as e:
+        print(f"ERROR in start_analysis: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{analysis_id}")
 async def get_analysis_result(
