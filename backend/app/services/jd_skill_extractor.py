@@ -66,8 +66,30 @@ def extract_jd_skills(jd: JobDescription, db: Session):
              importance = determine_importance(snippet, "critical")
              found_skills[skill_obj.id] = importance
              
-    # TODO: AI step would overwrite/refine this here using query_llm_for_jd_skills
-    # ai_results = query_llm_for_jd_skills(jd.raw_text, [s.name for s in all_skills])
+    # 4. (Hybrid) AI Refinement Layer
+    # Use AI to double-check importance or find context-heavy skills we missed,
+    # but ONLY if they are in the allowed list.
+    try:
+        from app.core.config import settings
+        if settings.OPENAI_API_KEY:
+             # We pass the Raw Text or the combined sections
+             full_text = jd.raw_text[:4000] # Truncate to avoid context limits if massively long
+             allowed_names = [s.name for s in all_skills]
+             
+             ai_results = query_llm_for_jd_skills(full_text, allowed_names)
+             
+             for item in ai_results:
+                 s_name = item.get("skill", "").lower()
+                 s_imp = item.get("importance", "critical").lower()
+                 
+                 if s_name in skill_map:
+                     s_id = skill_map[s_name].id
+                     # Strategy: Upsert
+                     # If AI says it's there, we trust it exists.
+                     # If AI says Critical, we trust it over Heuristic "Optional" (unless context is super weird)
+                     found_skills[s_id] = s_imp
+    except Exception as e:
+        print(f"AI Extraction Skipped/Failed: {e}")
     
     # Persist
     db.query(JDSkill).filter(JDSkill.jd_id == jd.id).delete()

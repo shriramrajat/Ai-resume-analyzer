@@ -1,14 +1,17 @@
 
 import json
-from typing import List, Dict
-# Placeholder for OpenAI/LLM client - strictly used as a logic engine, not a knowledge base.
-# In a real scenario, this would import openai or langchain.
-# For now, I'll simulate the interface or use a dummy implementation if no API key is provided.
-# User Requirements: "LLM: OpenAI / Claude (ONLY for reasoning & explanation)"
+from typing import List, Dict, Any
+from openai import OpenAI, APIError
+from app.core.config import settings
 
-# Since I don't have the User's API Key, I will write the PROMPT TEXT and the structure
-# to call the LLM, but I might need to mock the response or ask for a key.
-# I will implement the *functions* assuming the client exists.
+# Initialize OpenAI Client
+# We intentionally do not throw an error at import time if key is missing,
+# but rather fail gracefully during execution or use fallback.
+client = None
+if settings.OPENAI_API_KEY:
+    client = OpenAI(api_key=settings.OPENAI_API_KEY)
+else:
+    print("WARNING: No OPENAI_API_KEY found. LLM features will return empty results.")
 
 def build_skill_extraction_prompt(section_text: str, allowed_skills: List[str]) -> str:
     """
@@ -41,8 +44,6 @@ def build_skill_extraction_prompt(section_text: str, allowed_skills: List[str]) 
       }}
     ]
     """
-    return prompt
-
     return prompt
 
 def build_jd_skill_extraction_prompt(section_text: str, allowed_skills: List[str]) -> str:
@@ -80,35 +81,66 @@ def build_jd_skill_extraction_prompt(section_text: str, allowed_skills: List[str
     """
     return prompt
 
-# Dummy LLM wrapper for now - intended to be replaced with actual OpenAI call
-# I will create a place to put the API key later.
+def _call_llm_json(prompt: str) -> List[Dict[str, Any]]:
+    """
+    Helper to call OpenAI with JSON mode forced.
+    """
+    if not client:
+        return []
+    
+    try:
+        response = client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that outputs JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={"type": "json_object"}
+        )
+        content = response.choices[0].message.content
+        if not content:
+            return []
+            
+        # The prompt asks for a list, but "json_object" mode usually enforces { "key": ... }
+        # Sometimes prompts asking for [] at top level break strict json mode or confuse it.
+        # We'll parse whatever we get.
+        data = json.loads(content)
+        
+        # If the LLM wrapped it in a key (common behavior even if not asked), extract the list
+        if isinstance(data, dict):
+             # Look for a list value
+             for k, v in data.items():
+                 if isinstance(v, list):
+                     return v
+        if isinstance(data, list):
+            return data
+            
+        return []
+        
+    except Exception as e:
+        print(f"LLM Call Failed: {e}")
+        return []
+
 def query_llm_for_skills(section_text: str, allowed_skills: List[str]) -> List[Dict]:
     """
-    Simulates sending the prompt to an LLM and getting strictly formatted JSON back.
-    This function isolates the "AI Danger Zone".
+    Extracts skills using LLM.
     """
     prompt = build_skill_extraction_prompt(section_text, allowed_skills)
-    
-    # TODO: Connect to OpenAI API here.
-    # For the purpose of this "Build Phase", I will define the contract.
-    # If the user provides an API Key in .env, this would work.
-    
-    # Mock response for testing the pipeline if called without key
-    return [] 
+    # We slightly modify prompt to ensure JSON Object structure for the API
+    # But for now, let's rely on the parsing helper
+    return _call_llm_json(prompt)
 
 def query_llm_for_jd_skills(section_text: str, allowed_skills: List[str]) -> List[Dict]:
     """
-    Simulates JD extraction LLM call.
+    Extracts JD skills using LLM.
     """
     prompt = build_jd_skill_extraction_prompt(section_text, allowed_skills)
-    return [] 
+    return _call_llm_json(prompt)
 
 def build_explanation_prompt(analysis_json: Dict) -> str:
     """
     Constructs specific prompt for Phase 6: Explanation Layer.
-    Feeding ONLY the structured analysis result.
     """
-    import json
     json_str = json.dumps(analysis_json, indent=2)
     
     prompt = f"""
@@ -135,47 +167,51 @@ def build_explanation_prompt(analysis_json: Dict) -> str:
 def generate_ai_explanation(analysis_json: Dict) -> Dict:
     """
     Calls LLM to generate the human-readable explanation.
-    Returns: Dict matching the strict schema.
     """
-    prompt = build_explanation_prompt(analysis_json)
-    
-    # Mock Response for Validation
-    response = {
-        "summary": "Your profile shows potential but lacks key technical requirements.",
-        "strengths_explained": [
-            "Strong foundation in Python is evident.",
-            "Backend experience aligns with general domain."
-        ],
-        "gaps_explained": [
-            "Critically missing Docker, which is a required hard skill.",
-            "Experience is 1 year short of the minimum requirement."
-        ],
-        "experience_commentary": "The role requires 3 years, but you have 2. This gap triggers a penalty score.",
-        "actionable_recommendations": [
-            "Build a small project using Docker/Kubernetes.",
-            "Highlight any freelance or side projects to bridge the experience gap."
-        ]
-    }
-    
-    # 6.5 Validation (Automated Guardrail)
-    if not validate_ai_response(response):
-        # Fallback if AI fails validation
+    if not client:
+        # Fallback if AI fails or key missing
         return {
-            "summary": "Analysis complete. Please review the detailed checklist below.",
-            "strengths_explained": [],
+            "summary": "Analysis complete (AI Explanation Unavailable). Please review the detailed checklist below.",
+            "strengths_explained": ["AI API Key missing - see raw analysis."],
             "gaps_explained": [],
             "experience_commentary": "Check detailed analysis.",
             "actionable_recommendations": []
         }
+
+    prompt = build_explanation_prompt(analysis_json)
+    
+    try:
+        response = client.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant that outputs JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            response_format={"type": "json_object"}
+        )
+        content = response.choices[0].message.content
+        result = json.loads(content)
         
-    return response
+        # 6.5 Validation (Automated Guardrail)
+        if validate_ai_response(result):
+            return result
+        else:
+             print("AI Response failed validation")
+             
+    except Exception as e:
+        print(f"Explanation Generation Failed: {e}")
+        
+    return {
+            "summary": "Analysis complete. AI generation failed.",
+            "strengths_explained": [],
+            "gaps_explained": [],
+            "experience_commentary": "",
+            "actionable_recommendations": []
+        }
 
 def validate_ai_response(response: Dict) -> bool:
     """
     Step 6.5: Validation Rules (Automate These)
-    1. Check JSON Schema (Keys must exist)
-    2. (Constraint) Ensure no extra/hallucinated skills? 
-       - Hard to regex every word, but we ensure structure is correct.
     """
     required_keys = ["summary", "strengths_explained", "gaps_explained", "experience_commentary", "actionable_recommendations"]
     
@@ -188,6 +224,7 @@ def validate_ai_response(response: Dict) -> bool:
     # 2. Type Check
     if not isinstance(response["strengths_explained"], list) or not isinstance(response["gaps_explained"], list):
          print("Validation Failed: Lists are not lists")
+         # Attempt to fix if they are strings (some LLMs do bulleted strings)
          return False
          
     return True 
