@@ -1,4 +1,3 @@
-
 fastapi
 uvicorn
 sqlalchemy
@@ -6,3 +5,14 @@ python-multipart
 pdfplumber
 # Database driver
 psycopg2-binary
+
+# Configuration
+python-dotenv
+pydantic-settings
+
+# AI
+openai
+
+# Testing
+pytest
+httpx
